@@ -1,2 +1,2 @@
 # originalfigures
-This is where data for the original figures from the papers to validate extraction via 'check_dataextraction.R')
+This is where data for the original figures from the papers to validate extraction via 'check_dataextraction.R'. These must be requested from the authors as they are subject to copyright of the original publishers'.
