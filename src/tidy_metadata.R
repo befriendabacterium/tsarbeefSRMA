@@ -1,40 +1,28 @@
 # 1. CHANGE TIME COLUMNS ---------------------------------------------------------
 
-#BASELINES: move zeros to baseline column
+#BASELINES: Create a baseline column where the default time of baseline is zero days (most studies)
 pico_processed$outcome_timeofbaseline_days<-0
 
+#for particular studies where time of baseline is different to study days, change time of baseline
 pico_processed$outcome_timeofbaseline_days[pico_processed$study_publicationID=='agga2016']<-5 #9th feb, then treatment from 14th-18th feb (5 days), then first measure on 23rd feb 5 days post treatment
 pico_processed$outcome_timeofbaseline_days[pico_processed$study_publicationID=='inglis2020']<-5
 
-#pico_processed$outcome_timeofbaseline_days[baseline_rows]<-log10(pico_processed$outcome_timeofbaseline_days[baseline_rows]+1)
-
-#DURING: no need to log because are normally distributed
-#rcompanion::plotNormalHistogram(pico_processed$outcome_timesinceintervention_start_days)
-#rcompanion::plotNormalHistogram(log10(pico_processed$outcome_timesinceintervention_start_days+1))
-#remove baselines as they zero-skew the data
-#pico_processed$outcome_timesinceintervention_start_days[baseline_rows]<-NA
-#pico_processed$outcome_timesinceintervention_start_days<-log10(pico_processed$outcome_timesinceintervention_start_days+1)
-
-#END: remove 1 from time since intervention end so that it represents number of days clear of antibiotic not days since treatment
-#rcompanion::plotNormalHistogram(pico_processed$outcome_timesinceintervention_end_days)
-#rcompanion::plotNormalHistogram(log10(pico_processed$outcome_timesinceintervention_end_days+1))
-#pico_processed$outcome_timesinceintervention_end_days<-pico_processed$outcome_timesinceintervention_end_days-1
-#log time since intervention end
-rcompanion::plotNormalHistogram(pico_processed$outcome_timesinceintervention_end_days)
-
-#INTERVENTION LENGTH: coerce zeros in intervention length to NA --------------
-#these are baseline measures so should've been coded as NAs anyway
+## INTERVENTION LENGTH: coerce zeros in intervention length to NA --------------
+#these are baseline measures so recode them as NAs
 pico_processed$intervention_length_days[pico_processed$pre_or_post_intervention=='pre']<-NA
 
-# ADD COLUMN FOR PRE OR POST INTERVENTION (i.e. is it baseline data ---------------------------
+## ADD COLUMN FOR PRE OR POST INTERVENTION (i.e. is it baseline data ---------------------------
 
 pico_processed$pre_or_post_intervention<-NA
 
+#NB OUTCOME_STUDY_DAYS IS THE RANDOM EFFECT OF TIME
+#if outcome_study_days is below 0, then count as pre-intervention
 pico_processed$pre_or_post_intervention[which(pico_processed$outcome_study_days<=0)]<-'pre'
 
+#if outcome_study_days is above 0, then count as post-intervention
 pico_processed$pre_or_post_intervention[is.na(pico_processed$pre_or_post_intervention)]<-'post'
 
-# ADD PERIODS COLUMN FOR TIME -----------------------------------------------------------------
+## ADD PERIODS COLUMN FOR TIME -----------------------------------------------------------------
 
 #add a column denoting the period of each measurement (before, during or after)
 pico_processed$period<-NA
@@ -56,17 +44,7 @@ pico_processed$intervention_antibiotic_class<-plyr::revalue(pico_processed$inter
 #coerce antibiotic class column to factor
 pico_processed$intervention_antibiotic_class<-as.factor(pico_processed$intervention_antibiotic_class)
 
-# 3. FILL IN MISSING ANTIBIOTIC DOSAGES ---------------------------------------------------------
-
-# #FILL IN MISSING DOSAGES
-# #check which one(s) is NA
-# pico_processed$study_publicationID[which(is.na(pico_processed$intervention_dosage_value))]
-# #replace schmidt missing dosage with 6.6mgkg
-# pico_processed$intervention_dosage_value[is.na(pico_processed$intervention_dosage_value)]<-6.6
-# #replace schmidt missing dosage with 6.6mgkg
-# pico_processed$intervention_dosage_unit[is.na(pico_processed$intervention_dosage_unit)]<-'mg_kg'
-
-# 4. STANDARDISE ANTIBIOTIC DOSAGES TO MGKG ---------------------------------------------------------
+# 3. STANDARDISE ANTIBIOTIC DOSAGES TO MGKG ---------------------------------------------------------
 
 #make new dosage vector for standardising doses  (easier to work with than directly on column)
 dosage_mgkg<-pico_processed$intervention_dosage_value
@@ -138,28 +116,8 @@ pico_processed$population_antibioticfreebefore[is.na(pico_processed$population_a
 
 #add column specifying whether the outcome was sampled from a pen where intervention and control animals were cohoused (i.e. potential contamination)
 pico_processed$outcome_frommixedpen_TF<-pico_processed$intervention_proportion_perpen!=1
-# 
-# #add a dummy risk of bias column (for now)
-# levels(pico_processed$study_publicationID)
-# lowrisk_studies<-c('agga2016','alali2009','beukers2015','goulart2022a','holman2019','inglis2005','inglis2020','kanwar2014','levent2022','long2022','lowrance2007','muller2018','murray2022','ohta2019','schmidt2020','zaheer2013')
-# someconcerns_studies<-c('')
-# highrisk_studies<-c('berge2005','edrington2014','goulart2022b','kanwar2013','lhermie2017','lefebvre2005', 'schmidt2013')
-# 
-# pico_processed$rob_overall<-NA
-# 
-# pico_processed$rob_overall[pico_processed$study_publicationID%in%lowrisk_studies]<-'Low risk'
-# pico_processed$rob_overall[pico_processed$study_publicationID%in%someconcerns_studies]<-'Some concerns'
-# pico_processed$rob_overall[pico_processed$study_publicationID%in%highrisk_studies]<-'High risk'
-# 
-# pico_processed$rob_overall<-as.factor(pico_processed$rob_overall)
-# 
-# pico_processed$rob_overall
 
 # 7. ADD A COLUMN OF COLOURS FOR EACH STUDY, FOR PLOTTING ----------------------------------------------
-#install.packages("devtools")
-#require("devtools")
-#remotes::install_github("KarstensLab/microshades", dependencies=TRUE)
-# add colours column (for plotting)
 
 #set seed so colour palette generation reproduces previous version in tidy_metadata()
 set.seed(123)
@@ -203,42 +161,18 @@ for (s in 1:length(studies)){
 #reorder levels
 pico_processed$study_studyID<-
   factor(pico_processed$study_studyID,
-         levels=c("USMARC_Tylmon",
-                  "IowaState_Dano",
-                  "Lethbridge_ChlortetChlortetsul",
+         levels=c("USMARC_Chlortet",
                   "Lethbridge_Chlortetsul",
                   "Lethbridge_Tyl",
-                  "TexasA&M_Cef",
-                  "TexasA&M_CefCefchlortet",
-                  "WKU_Tyl",
-                  "TexasA&M_CefTul",
-                  "TexasA&M_Tyl",
                   "TexasA&M_TylTylprobiotic",
-                  "USMARC_Chlortet",
-                  "USMARC_Tyl"))
-
-# #save the palette as an attribute of the plotting_colour column so it can be used by ggplot
-# plotting_colour<-data.table::setattr(plotting_colour,'palette', study_palette)
-# 
-# pico_processed<-cbind(pico_processed,plotting_colour=plotting_colour)
-# 
-# attr(pico_processed$plotting_colour)
-
-# library(data.table)
-
-# plotting_colour
-
-# #studycolours<-microshades_cvd[as.factor(pico_witheffectsizes$study_studyID)]
-# 
-# set.seed(123)
-# microshades_cvd<-sample(unlist(microshades::microshades_cvd_palettes),nlevels(pico_processed$study_studyID), replace=F)
-# studycolours<-microshades_cvd[as.factor(pico_processed$study_studyID)]
-# names(studycolours)<-pico_processed$study_studyID
-# 
-# #subset the microshades per study palette to just the studies included in the current model/sub-dataset
-# cbpl_temp<-microshades_cvd[match(unique(H1_modelresults_list[[m]]$data$stdy), names(microshades_cvd))]
-#
-# pico_processed<-cbind(pico_processed,plotting_colour=studycolours)
+                  "USMARC_Tylmon",
+                  "USMARC_Tyl",
+                  "TexasA&M_Tyl",
+                  "WKU_Tyl",
+                  "TexasA&M_Cef",
+                  "TexasA&M_CefTul",
+                  "TexasA&M_CefCefchlortet"
+                  ))
 
 # 8. ADD THE METADF TO PICO DF -----------------------------------------------
 
@@ -261,31 +195,18 @@ pico_processed$publication_year_mc<-as.numeric(scale(pico_processed$publication_
 unique(pico_processed$study_studyID)
 
 study_and_designs<-c(
+                USMARC_Chlortet = "randomised block design",
                 Lethbridge_Chlortetsul = "completely randomised design",
                 Lethbridge_Tyl = "completely randomised design",
+                `TexasA&M_TylTylprobiotic` = "randomised block design",
                 USMARC_Tylmon = 'non-randomised design',
                 USMARC_Tyl = "randomised block design",
-                `TexasA&M_TylTylprobiotic` = "randomised block design",
                 `TexasA&M_Tyl` = "randomised block design",
                 WKU_Tyl = "randomised block design",
-                #IowaState_Dano = "completely randomised design",
-                #Lethbridge_ChlortetChlortetsul = "completely randomised design",
-                USMARC_Chlortet = "randomised block design",
                 `TexasA&M_Cef` = "completely randomised design",
                 `TexasA&M_CefTul` = "randomised block design",
                 `TexasA&M_CefCefchlortet` = "completely randomised design"
-                #Lethbridge_ChlortetsulChlortetTetMonTyVir = "randomised block design",
-                #Lethbridge_OxytetTul = "randomised block design",
-                #Lethbridge_Tyl = "completely randomised design",
-                #IowaState_Enro = "completely randomised design",
-                #INRA_Marbo = 'OBS', #prospective cohort
-                #Lethbridge_TyTulTil = "completely randomised design",
-                #SouthDakotaState_Florfen = "completely randomised design",
-                #USDAARS_Virg = "completely randomised design",
-                #CRSAD_Oxytet = "completely randomised design",
-                #USMARC_CefTulFlor = "randomised block design",
-                #KansasState_Tyl = "randomised block design",
-                )
+              )
 
 pico_processed$study_studyID
 
@@ -322,26 +243,12 @@ pico_processed$study_studyID_pubready<-
                   "TexasA&M_CefCefchlortet" =  "Texas A&M - Ceftiofur; Ceftiofur with Chlortetracycline")
                 )
 
-#"INRA - Marbofloxacin" = "INRA_Marbo",
-  # "Iowa State - Enrofloxacin" = "IowaState_Enro",                        
-  # "Lethbridge - Oxytetracycline; Tulathromycin" = "Lethbridge_OxytetTul",                    
-  # "Lethbridge - Tylosin; Tulathromycin; Tilmicosin" = "Lethbridge_TyTulTil",                      
-  # "South Dakota State - Florfenicol" = "SouthDakotaState_Florfen",                  
-  # "USDAARS - Virginiamycin" = "USDAARS_Virg",                          
-  # "USMARC - Ceftiofur; Tulathromycin; Florfenicol" ="USMARC_CefTulFlor",                      
-  # "CRSAD - Oxytetracycline" = "CRSAD_Oxytet",                         
-  # "Kansas State - Tylosin" = "KansasState_Tyl",
-  # "Lethbridge - Chlortetracycline with sulfamethazine; Chlortetracycline; Monensin; Tylosin; Virginiamycin" = "Lethbridge_ChlortetsulChlortetTetMonTyVir" 
-
-
 
 pico_processed$study_publicationID_pubready<-as.factor(pico_processed$study_publicationID)
 
 pico_processed$study_publicationID_pubready<-
   plyr::revalue(pico_processed$study_publicationID_pubready, 
                 c(
-                  #"goulart2022a" = "Goulart et al. 2022a",
-                  #"alexander2009" = "Alexander et al. 2009†",  #sharma also but not included in meta-analysis cos not full data
                   "inglis2019" =  "Inglis et al. 2019",
                    "beukers2015" = "Beukers et al. 2005",
                    "dornbach2025" = "Dornbach et al. 2025",
@@ -355,19 +262,6 @@ pico_processed$study_publicationID_pubready<-
                    "kanwar2014" = "Kanwar et al. 2014", #kanwar2013 also but not included in meta-analysis cos data duplicated in ohta2019
                    "ohta2019" = "Ohta et al. 2019"
                    ))
-# `Alali et al. 2009` = "alali2009",
-# `Berge et al. 2005` ="berge2005",
-# `Edrington et al. 2014` = "edrington2014",
-# `Goulart et al. 2022b` = "goulart2022b" ,
-# `Kanwar et al. 2013` = "kanwar2013",   
-# `Lhermie et al. 2017` = "lhermie2017",   
-# `Long et al. 2022` = "long2022",      
-# `Zaheer et al. 2013` = "zaheer2013",
-# `Inglis et al. 2005` = "inglis2005",
-# `Lefebvre et al. 2005` = "lefebvre2005", 
-# `Muller et al. 2018` = "muller2018",    
-# `Sharma et al. 2008` = "sharma2008"
-#,
 
 #list the publications for each study
 pubs_per_study<-as.list(tapply(pico_processed$study_publicationID_pubready,
@@ -401,15 +295,6 @@ pico_processed$outcome_metaanalysisaccountedforblocking<-plyr::revalue(pico_proc
                                                                     "not_possible" = "Not possible \n (no blocking data)"
                                                                   )
 )
-
-# #rename ceph as third gen ceph as all ceftiofur (more specific)
-# pico_processed$outcome_format_meta<-plyr::revalue(pico_processed$outcome_format_meta, 
-#                                                   c("individual (intervention and pen effect conflated)"="individual \n(intervention and pen effect conflated)",
-#                                                     "individual (pen effect not accounted for)"="individual \n (pen effect not accounted for)",
-#                                                     "individual (pen as random effect)"="individual \n (pen as random effect)",
-#                                                     "pen (individuals as pseudoreplicates)"="pen \n (individuals as pseudoreplicates)"))
-
-
 
 # MAKE CLUSTERS FOR DIFFERENT LEVELS OF CLUSTERING OF OBSERVATIONS --------
 
