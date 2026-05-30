@@ -1,2 +1,2 @@
-# tsarbeefSRMA
-Code for 'Time-dependent selection for antibiotic resistance during and after antibiotic administration to beef cattle: A systematic review and meta-analysis of longitudinal studies'
+# functions
+This is where the functions needed for the meta-analysis pipelines are stored.
