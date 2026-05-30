@@ -1,7 +1,7 @@
 # beefantibiotics-SRMA
 Code for 'Effects of antibiotics on the abundance of antibiotic resistance determinants during and after antibiotic administration to beef cattle: A systematic review and meta-analysis of longitudinal studies'
 
-There are two main scripts:
+To run the code, open the RProject file ('beefantibiotics-SRMA.Rproj') in RStudio and the two main scripts which sourcel all other scripts in the repository:
 
 1. **prep_for_meta:** This script installs/loads the necessary packages, downloads the data from OSF (if not already present in the local repository), processes it for meta-analysis (e.g. to calculate effect sizes and standardise other variables), and produces the initial forest plots to summarise the results of individual studies.
    
