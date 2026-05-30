@@ -1,6 +1,6 @@
 calculate_varbarlength<-function(pico_df){
   
-   #total determinantslog10: absolute difference between mean and error bar limit (up or down)
+  #total determinantslog10: absolute difference between mean and error bar limit (up or down)
   pico_df$outcome_plot_totaldeterminantslog10_intervention_var<-abs(pico_df$outcome_plot_totaldeterminantslog10_intervention_mean-pico_df$outcome_plot_totaldeterminantslog10_intervention_errorbarlimit)
   pico_df$outcome_plot_totaldeterminantslog10_control_var<-abs(pico_df$outcome_plot_totaldeterminantslog10_control_mean-pico_df$outcome_plot_totaldeterminantslog10_control_errorbarlimit)
   
