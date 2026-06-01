@@ -124,9 +124,9 @@ for (o in 1:2){
     
   ## PLOT ORIGINAL FIGURE ----------------------------------------------------
     
-  orig_fig_directory<-'1_data/originalfigures/'
+  orig_fig_directory<-'originalfigures/'
   img<-png::readPNG(paste(orig_fig_directory,figurematch_df[row_selected,figfile_cols[o]],sep=''))
-  #orig_fig<-kfbmisc::png_to_grob('1_data/originalfigures/agga2023_tylosin75_enteroc_ery.png')
+  #orig_fig<-kfbmisc::png_to_grob('originalfigures/agga2023_tylosin75_enteroc_ery.png')
   g <- grid::rasterGrob(img, width = unit(1, "npc"), height = unit(1, "npc"))
   # Plot as ggplot object
   orig_fig <- ggplot() +
